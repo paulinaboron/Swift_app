@@ -8,8 +8,13 @@ public class Database {
     private static Connection connection;
     private static Jdbi jdbi;
 
-    public static void connect2() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/swift_schema", "root", "pass");
+    public static void connect2() {
+        try{
+            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/swift_schema", "root", "pass");
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void connect() {
