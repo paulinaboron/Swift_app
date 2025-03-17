@@ -1,6 +1,9 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.Model.Branch;
+import org.example.Model.Country;
 import org.example.Model.Headquarter;
 import org.example.Model.SwiftCode;
 import org.jdbi.v3.core.Handle;
@@ -19,21 +22,10 @@ public class SwiftCodeService {
             pst.setString(1, swiftCode);
             resultset = pst.executeQuery();
             resultset.next();
-            System.out.println(resultset.getString("NAME"));
-            System.out.println(resultset.getString("ADDRESS"));
-
-            hq.setSwiftCode(resultset.getString("SWIFT CODE"));
-            hq.setBankName(resultset.getString("NAME"));
-            hq.setAddress(resultset.getString("ADDRESS"));
-            hq.setCountryISO2(resultset.getString("COUNTRY ISO2 CODE"));
-            hq.setCountryName(resultset.getString("COUNTRY NAME"));
-            hq.setHeadquarter(true);
+            hq.parseData(resultset);
             hq.setBranches(getBranchesList(swiftCode));
-
-            System.out.println(hq.toString());
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            return null;
         }
         return hq;
     }
@@ -48,19 +40,12 @@ public class SwiftCodeService {
             resultset = pst.executeQuery();
             while(resultset.next()){
                 Branch branch = new Branch();
-                branch.setSwiftCode(resultset.getString("SWIFT CODE"));
-                branch.setBankName(resultset.getString("NAME"));
-                branch.setAddress(resultset.getString("ADDRESS"));
-                branch.setCountryISO2(resultset.getString("COUNTRY ISO2 CODE"));
-                branch.setCountryName(resultset.getString("COUNTRY NAME"));
-                branch.setHeadquarter(false);
+                branch.parseData(resultset);
                 list.add(branch);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
@@ -73,46 +58,68 @@ public class SwiftCodeService {
             pst.setString(1, swiftCode);
             resultset = pst.executeQuery();
             resultset.next();
-            System.out.println(resultset.getString("NAME"));
-            System.out.println(resultset.getString("ADDRESS"));
-
-            branch.setSwiftCode(resultset.getString("SWIFT CODE"));
-            branch.setBankName(resultset.getString("NAME"));
-            branch.setAddress(resultset.getString("ADDRESS"));
-            branch.setCountryISO2(resultset.getString("COUNTRY ISO2 CODE"));
-            branch.setCountryName(resultset.getString("COUNTRY NAME"));
-            branch.setHeadquarter(false);
-
-            System.out.println(branch);
-
+            branch.parseData(resultset);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return branch;
     }
 
-    public static List<SwiftCode> getByCountry(String countryISO2) {
-        try (Handle handle = Database.getJdbi().open()) {
-            return handle.createQuery("SELECT * FROM codes WHERE `COUNTRY ISO2 CODE` = :countryISO2")
-                    .bind("countryISO2", countryISO2)
-                    .mapToBean(SwiftCode.class)
-                    .list();
+    public static Country getByCountry(String countryISO2) {
+        ResultSet resultSet;
+        Country country = new Country();
+        List<Branch> list = new ArrayList<>();
+        String query = "SELECT * FROM codes WHERE `COUNTRY ISO2 CODE` = ?";
+        try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
+            pst.setString(1, countryISO2);
+            resultSet = pst.executeQuery();
+
+            resultSet.next();
+
+            country.setCountryName(resultSet.getString("COUNTRY NAME"));
+            country.setCountryISO2(resultSet.getString("COUNTRY ISO2 CODE"));
+            Branch branch1 = new Branch();
+            branch1.parseData(resultSet);
+            list.add(branch1);
+
+            while(resultSet.next()){
+                Branch branch = new Branch();
+                branch.parseData(resultSet);
+                list.add(branch);
+            }
+            country.setBranches(list);
+
+        } catch (Exception e) {
+//            throw new RuntimeException(e);
+            return null;
         }
+        return country;
     }
 
-    public static void addSwiftCode(SwiftCode swiftCode) {
-        try (Handle handle = Database.getJdbi().open()) {
-            handle.createUpdate("INSERT INTO codes (`COUNTRY ISO2 CODE`, `SWIFT CODE`, `CODE TYPE`, `NAME`, `ADDRESS`, is_headquarter) VALUES (:swiftCode, :bankName, :address, :countryISO2, :countryName, :isHeadquarter)")
-                    .bindBean(swiftCode)
-                    .execute();
+    public static void addSwiftCode(String body) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Branch branch = objectMapper.readValue(body, Branch.class);
+        System.out.println(branch);
+        String query = "INSERT INTO codes (`COUNTRY ISO2 CODE`, `SWIFT CODE`, `NAME`, `ADDRESS`, `COUNTRY NAME`) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
+            pst.setString(1, branch.getCountryISO2());
+            pst.setString(2, branch.getSwiftCode());
+            pst.setString(3, branch.getBankName());
+            pst.setString(4, branch.getAddress());
+            pst.setString(5, branch.getCountryName());
+            pst.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public static void deleteSwiftCode(String swiftCode) {
-        try (Handle handle = Database.getJdbi().open()) {
-            handle.createUpdate("DELETE FROM codes WHERE `SWIFT CODE` = :swiftCode")
-                    .bind("swiftCode", swiftCode)
-                    .execute();
+        String query = "DELETE FROM codes WHERE `SWIFT CODE` = ?";
+        try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
+            pst.setString(1, swiftCode);
+            pst.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

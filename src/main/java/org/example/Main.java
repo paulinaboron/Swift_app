@@ -1,6 +1,8 @@
 package org.example;
 import static spark.Spark.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.Model.Branch;
+import org.example.Model.Headquarter;
 import org.example.Model.SwiftCode;
 
 import java.sql.*;
@@ -20,24 +22,27 @@ public class Main {
             boolean isHeadquarter = swiftCode.endsWith("XXX");
             res.type("application/json");
 
+            res.status(200);
             if(isHeadquarter){
-                return SwiftCodeService.getHeadquarter(swiftCode);
+                Headquarter hq = SwiftCodeService.getHeadquarter(swiftCode);
+                if(hq != null){
+                    return hq;
+                }
             }else{
                 return SwiftCodeService.getBranch(swiftCode);
             }
-//            res.status(404);
-//            return "{\"message\": \"SWIFT Code not found\"}";
+            res.status(404);
+            return "{\"message\": \"SWIFT Code not found\"}";
         });
 
         get("/v1/swift-codes/country/:countryISO2", (req, res) -> {
             String countryISO2 = req.params("countryISO2");
             res.type("application/json");
-            return objectMapper.writeValueAsString(SwiftCodeService.getByCountry(countryISO2));
+            return SwiftCodeService.getByCountry(countryISO2);
         });
 
-        post("/v1/swift-codes", (req, res) -> {
-            SwiftCode swiftCode = objectMapper.readValue(req.body(), SwiftCode.class);
-            SwiftCodeService.addSwiftCode(swiftCode);
+        post("/v1/swift-codes/", (req, res) -> {
+            SwiftCodeService.addSwiftCode(req.body());
             res.type("application/json");
             return "{\"message\": \"SWIFT Code added successfully\"}";
         });

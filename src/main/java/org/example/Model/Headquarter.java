@@ -1,5 +1,7 @@
 package org.example.Model;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public class Headquarter {
@@ -52,7 +54,7 @@ public class Headquarter {
     }
 
     public void setHeadquarter(boolean headquarter) {
-        isHeadquarter = headquarter;
+        this.isHeadquarter = headquarter;
     }
 
     public void setSwiftCode(String swiftCode) {
@@ -61,5 +63,18 @@ public class Headquarter {
 
     public void setBranches(List<Branch> branches) {
         this.branches = branches;
+    }
+
+    public void parseData(ResultSet rs){
+        try {
+            this.swiftCode = rs.getString("SWIFT CODE");
+            this.bankName = rs.getString("NAME");
+            this.address = rs.getString("ADDRESS");
+            this.countryISO2 = rs.getString("COUNTRY ISO2 CODE");
+            this.countryName = rs.getString("COUNTRY NAME");
+            this.isHeadquarter = true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
