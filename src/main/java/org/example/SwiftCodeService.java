@@ -2,11 +2,10 @@ package org.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.Model.Bank;
 import org.example.Model.Branch;
 import org.example.Model.Country;
 import org.example.Model.Headquarter;
-import org.example.Model.SwiftCode;
-import org.jdbi.v3.core.Handle;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -21,10 +20,11 @@ public class SwiftCodeService {
         try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
             pst.setString(1, swiftCode);
             resultset = pst.executeQuery();
-            resultset.next();
+            if(!resultset.next()) return null;
             hq.parseData(resultset);
             hq.setBranches(getBranchesList(swiftCode));
         } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return null;
         }
         return hq;
@@ -44,25 +44,27 @@ public class SwiftCodeService {
                 list.add(branch);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+            return null;
         }
         return list;
     }
 
-    public static Branch getBranch(String swiftCode){
+    public static Bank getBank(String swiftCode){
         ResultSet resultset;
-        Branch branch = new Branch();
+        Bank bank = new Bank();
         String query = "SELECT * FROM codes WHERE `SWIFT CODE` = ?";
 
         try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
             pst.setString(1, swiftCode);
             resultset = pst.executeQuery();
-            resultset.next();
-            branch.parseData(resultset);
+            if(!resultset.next()) return null;
+            bank.parseData(resultset);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+            return null;
         }
-        return branch;
+        return bank;
     }
 
     public static Country getByCountry(String countryISO2) {
@@ -74,7 +76,7 @@ public class SwiftCodeService {
             pst.setString(1, countryISO2);
             resultSet = pst.executeQuery();
 
-            resultSet.next();
+            if(!resultSet.next()) return null;
 
             country.setCountryName(resultSet.getString("COUNTRY NAME"));
             country.setCountryISO2(resultSet.getString("COUNTRY ISO2 CODE"));
@@ -90,36 +92,41 @@ public class SwiftCodeService {
             country.setBranches(list);
 
         } catch (Exception e) {
-//            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
             return null;
         }
         return country;
     }
 
-    public static void addSwiftCode(String body) throws JsonProcessingException {
+    public static int addSwiftCode(String body) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Branch branch = objectMapper.readValue(body, Branch.class);
-        System.out.println(branch);
-        String query = "INSERT INTO codes (`COUNTRY ISO2 CODE`, `SWIFT CODE`, `NAME`, `ADDRESS`, `COUNTRY NAME`) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
-            pst.setString(1, branch.getCountryISO2());
-            pst.setString(2, branch.getSwiftCode());
-            pst.setString(3, branch.getBankName());
-            pst.setString(4, branch.getAddress());
-            pst.setString(5, branch.getCountryName());
-            pst.executeUpdate();
+
+        try {
+            Bank bank = objectMapper.readValue(body, Bank.class);
+            System.out.println(bank);
+            String query = "INSERT INTO codes (`COUNTRY ISO2 CODE`, `SWIFT CODE`, `NAME`, `ADDRESS`, `COUNTRY NAME`) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
+                pst.setString(1, bank.getCountryISO2());
+                pst.setString(2, bank.getSwiftCode());
+                pst.setString(3, bank.getBankName());
+                pst.setString(4, bank.getAddress());
+                pst.setString(5, bank.getCountryName());
+                return pst.executeUpdate();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
+            return 0;
         }
     }
 
-    public static void deleteSwiftCode(String swiftCode) {
+    public static int deleteSwiftCode(String swiftCode) {
         String query = "DELETE FROM codes WHERE `SWIFT CODE` = ?";
         try (PreparedStatement pst = Database.getConnection().prepareStatement(query)) {
             pst.setString(1, swiftCode);
-            pst.executeUpdate();
+            return pst.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
+            return 0;
         }
     }
 

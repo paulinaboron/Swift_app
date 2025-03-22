@@ -9,30 +9,10 @@ public class Branch {
     private String address;
     private String bankName;
     private String countryISO2;
-    private String countryName;
     @JsonProperty("isHeadquarter")
     private boolean isHeadquarter;
     private String swiftCode;
 
-    public String toString_short() {
-        return "{swiftCode: " + swiftCode  +
-                ", bankName: " + bankName  +
-                ", address: " + address  +
-                ", countryISO2: " + countryISO2  +
-                ", isHeadquarter: " + isHeadquarter +
-                '}';
-    }
-
-    @Override
-    public String toString() {
-        return "{swiftCode: " + swiftCode  +
-                ", bankName: " + bankName  +
-                ", address: " + address  +
-                ", countryISO2: " + countryISO2  +
-                ", country name: " + countryName +
-                ", isHeadquarter: " + isHeadquarter +
-                '}';
-    }
 
     public void setSwiftCode(String swiftCode) {
         this.swiftCode = swiftCode;
@@ -50,9 +30,6 @@ public class Branch {
         this.countryISO2 = countryISO2;
     }
 
-    public void setCountryName(String countryName) {
-        this.countryName = countryName;
-    }
 
     public void setIsHeadquarter(boolean isHeadquarter) {
         this.isHeadquarter = isHeadquarter;
@@ -66,9 +43,6 @@ public class Branch {
         return countryISO2;
     }
 
-    public String getCountryName() {
-        return countryName;
-    }
 
     public String getAddress() {
         return address;
@@ -84,7 +58,6 @@ public class Branch {
             this.bankName = rs.getString("NAME");
             this.address = rs.getString("ADDRESS");
             this.countryISO2 = rs.getString("COUNTRY ISO2 CODE");
-            this.countryName = rs.getString("COUNTRY NAME");
             this.isHeadquarter = this.swiftCode.endsWith("XXX");
         } catch (SQLException e) {
             throw new RuntimeException(e);

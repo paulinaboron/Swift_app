@@ -1,14 +1,13 @@
 package org.example;
-import static spark.Spark.*;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.Model.Branch;
-import org.example.Model.Headquarter;
-import org.example.Model.SwiftCode;
+
+import static spark.Spark.*;
 
 import java.sql.*;
 
 public class Main {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) throws SQLException {
 
@@ -22,37 +21,62 @@ public class Main {
             boolean isHeadquarter = swiftCode.endsWith("XXX");
             res.type("application/json");
 
-            res.status(200);
-            if(isHeadquarter){
-                Headquarter hq = SwiftCodeService.getHeadquarter(swiftCode);
-                if(hq != null){
-                    return hq;
+            try{
+                Object result;
+                if(isHeadquarter){
+                    result = SwiftCodeService.getHeadquarter(swiftCode);
+                }else{
+                    result = SwiftCodeService.getBank(swiftCode);
                 }
-            }else{
-                return SwiftCodeService.getBranch(swiftCode);
+                if(result == null){
+                    res.status(404);
+                    return "{\"error\": \"SWIFT code not found\"}";
+                }
+                res.status(200);
+                return Mapper.prettyMap(result);
+
+            } catch (Exception e) {
+                res.status(500);
+                return "{\"error\": \"Internal server error: " + e.getMessage() + "\"}";
             }
-            res.status(404);
-            return "{\"message\": \"SWIFT Code not found\"}";
         });
+
+
 
         get("/v1/swift-codes/country/:countryISO2", (req, res) -> {
-            String countryISO2 = req.params("countryISO2");
+            String countryISO2 = req.params("countryISO2").toUpperCase();
             res.type("application/json");
-            return SwiftCodeService.getByCountry(countryISO2);
+
+            try {
+                var country = SwiftCodeService.getByCountry(countryISO2);
+                if (country == null ) {
+                    res.status(404);
+                    return "{\"error\": \"No SWIFT codes found for country " + countryISO2 + "\"}";
+                }
+                return Mapper.prettyMap(country);
+            } catch (Exception e) {
+                res.status(500);
+                return "{\"error\": \"Internal server error: " + e.getMessage() + "\"}";
+            }
         });
 
+
         post("/v1/swift-codes/", (req, res) -> {
-            SwiftCodeService.addSwiftCode(req.body());
             res.type("application/json");
-            return "{\"message\": \"SWIFT Code added successfully\"}";
+            if(SwiftCodeService.addSwiftCode(req.body()) == 1)
+                return "{\"message\": \"SWIFT Code added successfully\"}";
+            res.status(500);
+            return "{\"error\": \"Internal server error\"}";
         });
 
         delete("/v1/swift-codes/:swiftCode", (req, res) -> {
             String swiftCode = req.params("swiftCode");
-            SwiftCodeService.deleteSwiftCode(swiftCode);
-            return "{\"message\": \"SWIFT Code deleted successfully\"}";
+            int deleted = SwiftCodeService.deleteSwiftCode(swiftCode);
+            return "{\"message\": \"" + deleted + " SWIFT Code deleted\"}";
         });
     }
     }
+
+
 
 
