@@ -12,9 +12,9 @@ public class Main {
     public static void main(String[] args) throws SQLException {
 
         port(8080);
-        Database.connect2();
+        Database.connect();
 
-        get("/test", (req, res) -> "Hello, Spark!");
+        get("/", (req, res) -> "SWIFT codes app");
 
         get("/v1/swift-codes/:swiftCode", (req, res) -> {
             String swiftCode = req.params("swiftCode");

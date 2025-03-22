@@ -41,6 +41,14 @@ public class Headquarter {
         this.branches = branches;
     }
 
+    public String getSwiftCode() {
+        return swiftCode;
+    }
+
+    public String getCountryName() {
+        return countryName;
+    }
+
     public void parseData(ResultSet rs){
         try {
             this.swiftCode = rs.getString("SWIFT CODE");
