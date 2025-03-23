@@ -33,7 +33,7 @@ Server will be available at **http://localhost:8080**.
 
 ### 🔹 Example Requests
 #### Add a SWIFT Code
-```json
+```bash
 POST http://127.0.0.1:8080/v1/swift-codes/
 {
   "address": "Address",
@@ -51,19 +51,6 @@ GET http://127.0.0.1:8080/v1/swift-codes/country/PL
 #### Delete a SWIFT Code
 ```bash
 DELETE http://127.0.0.1:8080/v1/swift-codes/PLBKPLPWXXX
-```
-
-## 🛠 Testing
-To test the API, you can use **Postman** or **cURL**.
-
-```bash
-GET http://127.0.0.1:8080/v1/swift-codes/country/PL
-```
-
-## 🔍 Unit and Integration Tests
-Run tests using **JUnit and Mockito**:
-```bash
-mvn test
 ```
 
 ## 🐬 Database
