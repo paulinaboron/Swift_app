@@ -15,30 +15,6 @@ public class Bank {
     private String swiftCode;
 
 
-    public void setSwiftCode(String swiftCode) {
-        this.swiftCode = swiftCode;
-    }
-
-    public void setBankName(String bankName) {
-        this.bankName = bankName;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public void setCountryISO2(String countryISO2) {
-        this.countryISO2 = countryISO2;
-    }
-
-    public void setCountryName(String countryName) {
-        this.countryName = countryName;
-    }
-
-    public void setIsHeadquarter(boolean isHeadquarter) {
-        this.isHeadquarter = isHeadquarter;
-    }
-
     public String getSwiftCode() {
         return swiftCode;
     }

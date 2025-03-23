@@ -7,7 +7,6 @@ public class Database {
 
     public static void connect() {
         try{
-//            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/swift_schema", "root", "pass");
             connection = DriverManager.getConnection("jdbc:mysql://sql7.freesqldatabase.com/sql7769026", "sql7769026", "33VR4J2Ksm");
         } catch (SQLException e) {
             throw new RuntimeException(e);
