@@ -66,7 +66,7 @@ public class Bank {
             this.address = rs.getString("ADDRESS");
             this.countryISO2 = rs.getString("COUNTRY ISO2 CODE");
             this.countryName = rs.getString("COUNTRY NAME");
-            this.isHeadquarter = this.swiftCode.endsWith("XXX");
+            this.isHeadquarter = false;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

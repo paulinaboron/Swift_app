@@ -13,6 +13,7 @@ public class Main {
 
         port(8080);
         Database.connect();
+        SwiftCodeService scs = new SwiftCodeService(Database.getConnection());
 
         get("/", (req, res) -> "SWIFT codes app");
 
@@ -24,9 +25,9 @@ public class Main {
             try{
                 Object result;
                 if(isHeadquarter){
-                    result = SwiftCodeService.getHeadquarter(swiftCode);
+                    result = scs.getHeadquarter(swiftCode);
                 }else{
-                    result = SwiftCodeService.getBank(swiftCode);
+                    result = scs.getBank(swiftCode);
                 }
                 if(result == null){
                     res.status(404);
@@ -48,7 +49,7 @@ public class Main {
             res.type("application/json");
 
             try {
-                var country = SwiftCodeService.getByCountry(countryISO2);
+                var country = scs.getByCountry(countryISO2);
                 if (country == null ) {
                     res.status(404);
                     return "{\"error\": \"No SWIFT codes found for country " + countryISO2 + "\"}";
@@ -63,7 +64,7 @@ public class Main {
 
         post("/v1/swift-codes/", (req, res) -> {
             res.type("application/json");
-            if(SwiftCodeService.addSwiftCode(req.body()) == 1)
+            if(scs.addSwiftCode(req.body()) == 1)
                 return "{\"message\": \"SWIFT Code added successfully\"}";
             res.status(500);
             return "{\"error\": \"Internal server error\"}";
@@ -71,7 +72,7 @@ public class Main {
 
         delete("/v1/swift-codes/:swiftCode", (req, res) -> {
             String swiftCode = req.params("swiftCode");
-            int deleted = SwiftCodeService.deleteSwiftCode(swiftCode);
+            int deleted = scs.deleteSwiftCode(swiftCode);
             return "{\"message\": \"" + deleted + " SWIFT Code deleted\"}";
         });
     }

@@ -1,7 +1,5 @@
 package org.example;
 
-import org.jdbi.v3.core.Jdbi;
-
 import java.sql.*;
 
 public class Database {
@@ -20,3 +18,5 @@ public class Database {
         return connection;
     }
 }
+
+
